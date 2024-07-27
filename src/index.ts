@@ -38,6 +38,17 @@ application.get("/about", (req: Request, resp: Response) => {
   resp.render("about");
 });
 
+application.get("/login", (req: Request, resp: Response) => {
+  const boost = !!req.headers && req.headers["hx-request"];
+
+  if (boost) {
+    resp.render("partials/login");
+    return;
+  }
+
+  resp.render("login");
+});
+
 application.get("/db", async (req: Request, resp: Response) => {
   try {
     const total = await prisma.todo.count();
