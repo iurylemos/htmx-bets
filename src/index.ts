@@ -17,10 +17,24 @@ application.set("views", "./src/views");
 application.set("view engine", "liquid");
 
 application.get("/", (req: Request, resp: Response) => {
+  const boost = !!req.headers && req.headers["hx-request"];
+
+  if (boost) {
+    resp.render("partials/hero");
+    return;
+  }
+
   resp.render("index");
 });
 
 application.get("/about", (req: Request, resp: Response) => {
+  const boost = !!req.headers && req.headers["hx-request"];
+
+  if (boost) {
+    resp.render("partials/about");
+    return;
+  }
+
   resp.render("about");
 });
 
