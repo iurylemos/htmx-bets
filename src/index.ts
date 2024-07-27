@@ -20,6 +20,10 @@ application.get("/", (req: Request, resp: Response) => {
   resp.render("index");
 });
 
+application.get("/about", (req: Request, resp: Response) => {
+  resp.render("about");
+});
+
 application.get("/db", async (req: Request, resp: Response) => {
   try {
     const total = await prisma.todo.count();
