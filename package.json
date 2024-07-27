@@ -6,7 +6,8 @@
     "start": "ts-node src/index.ts",
     "build": "npm run tailwind:watch && tsc",
     "serve": "node dist/index.js",
-    "dev": "npm run tailwind:watch && nodemon --exec ts-node src/index.ts",
+    "dev:nodemon": "nodemon --exec ts-node src/index.ts",
+    "dev": "concurrently \"npm run tailwind:watch\" \"npm run dev:nodemon\"",
     "tailwind:watch": "tailwindcss -i ./src/styles/global.css -o ./public/styles.css --watch"
   },
   "dependencies": {
@@ -19,6 +20,7 @@
   "devDependencies": {
     "@types/express": "^4.17.21",
     "@types/node": "^20.14.12",
+    "concurrently": "^8.2.2",
     "nodemon": "^3.1.4",
     "tailwindcss": "^3.4.7",
     "ts-node": "^10.9.2",
