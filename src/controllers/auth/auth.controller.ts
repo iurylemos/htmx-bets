@@ -1,6 +1,9 @@
 import { Request, Response, Router } from 'express'
 import { prisma } from '../../database'
+import { hash } from 'bcrypt'
+import { sign } from 'jsonwebtoken'
 
+const JWT_SECRET = process.env.JWT_SECRET || 'secret'
 const authController = Router()
 
 authController.get('/login', (req: Request, resp: Response) => {
@@ -26,18 +29,31 @@ authController.get('/logout', async (req: Request, resp: Response) => {
 
 authController.post('/register', async (req: Request, resp: Response) => {
     try {
-        console.log('body', req.body)
-
         const { email, password } = req.body
+
+        const checkEmail = await prisma.user.findFirst({
+            where: {
+                email,
+            },
+        })
+
+        if (checkEmail) {
+            resp.status(400).send('Email already exists')
+            return
+        }
+
+        const hashedPassword = await hash(password, 10)
 
         const user = await prisma.user.create({
             data: {
                 email,
-                password,
+                password: hashedPassword,
             },
         })
 
-        resp.cookie('token', email, { maxAge: 900000, httpOnly: true })
+        const token = sign({ id: user.id, email: user.email }, JWT_SECRET)
+
+        resp.cookie('token', token, { maxAge: 900000, httpOnly: true })
 
         resp.header('hx-redirect', '/app')
 
