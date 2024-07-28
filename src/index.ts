@@ -84,6 +84,38 @@ application.post('/login', async (req: Request, resp: Response) => {
     }
 })
 
+application.post('/register', async (req: Request, resp: Response) => {
+    try {
+        console.log('body', req.body)
+
+        const { email, password } = req.body
+
+        const user = await prisma.user.create({
+            data: {
+                email,
+                password,
+            },
+        })
+
+        resp.header('hx-redirect', '/app')
+
+        resp.status(201).send({ error: false, data: user })
+    } catch (error) {
+        console.log('error', error)
+        resp.status(500).send({ error: true, message: error })
+    }
+})
+
+application.get('/app', async (req: Request, resp: Response) => {
+    try {
+        const users = await prisma.user.findMany()
+
+        resp.render('app', { users })
+    } catch (error) {
+        console.log('error', error)
+    }
+})
+
 application.listen(PORT, () => {
     console.log(`Running at http://localhost:${PORT}`)
 })
