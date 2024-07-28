@@ -100,7 +100,7 @@ application.post('/register', async (req: Request, resp: Response) => {
             },
         })
 
-        resp.cookie('token', email)
+        resp.cookie('token', email, { maxAge: 900000, httpOnly: true })
 
         resp.header('hx-redirect', '/app')
 
@@ -116,6 +116,16 @@ application.get('/app', async (req: Request, resp: Response) => {
         const users = await prisma.user.findMany()
 
         resp.render('app', { users, email: req.cookies['token'] })
+    } catch (error) {
+        console.log('error', error)
+    }
+})
+
+application.get('/logout', async (req: Request, resp: Response) => {
+    try {
+        resp.cookie('token', '', { maxAge: 0, httpOnly: true })
+        resp.header('hx-redirect', '/login')
+        resp.send('')
     } catch (error) {
         console.log('error', error)
     }
