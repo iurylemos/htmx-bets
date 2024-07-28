@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express'
 import dotenv from 'dotenv'
 import { prisma } from './database'
 import { Liquid } from 'liquidjs'
+import cookieParser from 'cookie-parser'
 
 dotenv.config()
 
@@ -10,14 +11,16 @@ const PORT = process.env.PORT || 3000
 
 const liquidEngine = new Liquid()
 
+// express.config
 application.use(express.static('public'))
+application.use(express.json())
+application.use(express.urlencoded({ extended: true }))
+application.use(cookieParser())
 
+// liquid.config
 application.engine('liquid', liquidEngine.express())
 application.set('views', './src/views')
 application.set('view engine', 'liquid')
-
-application.use(express.json())
-application.use(express.urlencoded({ extended: true }))
 
 application.get('/', (req: Request, resp: Response) => {
     const boost = !!req.headers && req.headers['hx-request']
@@ -97,6 +100,8 @@ application.post('/register', async (req: Request, resp: Response) => {
             },
         })
 
+        resp.cookie('token', email)
+
         resp.header('hx-redirect', '/app')
 
         resp.status(201).send({ error: false, data: user })
@@ -110,7 +115,7 @@ application.get('/app', async (req: Request, resp: Response) => {
     try {
         const users = await prisma.user.findMany()
 
-        resp.render('app', { users })
+        resp.render('app', { users, email: req.cookies['token'] })
     } catch (error) {
         console.log('error', error)
     }
