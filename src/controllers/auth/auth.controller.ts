@@ -1,6 +1,6 @@
 import { Request, Response, Router } from 'express'
 import { prisma } from '../../database'
-import { hash } from 'bcrypt'
+import { compare, hash } from 'bcrypt'
 import { sign } from 'jsonwebtoken'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'secret'
@@ -77,11 +77,24 @@ authController.get('/register', (req: Request, resp: Response) => {
 
 authController.post('/login', async (req: Request, resp: Response) => {
     try {
-        console.log('body', req.body)
-
         const { email, password } = req.body
 
-        resp.send({ ok: true })
+        const user = await prisma.user.findFirst({
+            where: {
+                email,
+            },
+        })
+
+        if (!user || !(await compare(password, user.password))) {
+            resp.status(400).send('Invalid email or password')
+            return
+        }
+
+        const token = sign({ id: user.id, email: user.email }, JWT_SECRET)
+
+        resp.cookie('token', token, { maxAge: 900000, httpOnly: true })
+
+        resp.header('hx-redirect', '/app')
     } catch (error) {
         console.log('error')
     }
